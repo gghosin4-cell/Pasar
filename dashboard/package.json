@@ -52,6 +52,7 @@
     "@telegram-apps/sdk": "^3.11.8",
     "@vitejs/plugin-react": "^6.0.5",
     "ace-builds": "^1.44.0",
+    "brace-expansion": "^5.0.12",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
