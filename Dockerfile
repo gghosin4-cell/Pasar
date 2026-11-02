@@ -68,6 +68,22 @@ RUN apk upgrade --no-cache \
         tzdata \
     && update-ca-certificates
 
+# The upstream python image ships a pip wheel inside ensurepip/_bundled that the
+# scanner flags once a security release supersedes it. Replace both the bundled
+# bootstrap wheel and the installed pip with the current patched release, so the
+# image carries no stale pip artifact.
+ARG PIP_VERSION=26.2.2
+RUN set -eux; \
+    if ! python -m pip --version >/dev/null 2>&1; then python -m ensurepip --upgrade; fi; \
+    python -m pip install --no-cache-dir --upgrade "pip==${PIP_VERSION}"; \
+    python -m pip download --no-cache-dir --no-deps --dest /tmp/pip-wheel "pip==${PIP_VERSION}"; \
+    bundled="$(python -c 'import ensurepip, os; print(os.path.join(os.path.dirname(ensurepip.__file__), "_bundled"))')"; \
+    rm -f "$bundled"/pip-*.whl; \
+    cp /tmp/pip-wheel/pip-*.whl "$bundled"/; \
+    rm -rf /tmp/pip-wheel; \
+    python -m pip --version; \
+    ls "$bundled"
+
 COPY cli_wrapper.sh /usr/bin/pasarguard-cli
 RUN chmod +x /usr/bin/pasarguard-cli
 
