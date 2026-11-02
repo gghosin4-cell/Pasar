@@ -51,7 +51,11 @@ EXPOSE 8443
 COPY --from=builder /code /code
 WORKDIR /code
 
-ENV PATH="/code/.venv/bin:$PATH"
+ENV PATH="/code/.venv/bin:$PATH" \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    UVICORN_HOST=0.0.0.0 \
+    UVICORN_PORT=8443
 
 # Refresh the distribution's security updates and install only what the
 # runtime scripts need: bash for start/healthcheck/wrapper scripts, the trust
