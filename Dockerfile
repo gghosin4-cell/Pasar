@@ -74,15 +74,18 @@ RUN apk upgrade --no-cache \
 # image carries no stale pip artifact.
 ARG PIP_VERSION=26.2.2
 RUN set -eux; \
-    if ! python -m pip --version >/dev/null 2>&1; then python -m ensurepip --upgrade; fi; \
-    python -m pip install --no-cache-dir --upgrade "pip==${PIP_VERSION}"; \
-    python -m pip download --no-cache-dir --no-deps --dest /tmp/pip-wheel "pip==${PIP_VERSION}"; \
-    bundled="$(python -c 'import ensurepip, os; print(os.path.join(os.path.dirname(ensurepip.__file__), "_bundled"))')"; \
+    py=/usr/local/bin/python3; \
+    site="$("$py" -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')"; \
+    if ! "$py" -m pip --version >/dev/null 2>&1; then "$py" -m ensurepip --upgrade; fi; \
+    "$py" -m pip install --no-cache-dir --upgrade "pip==${PIP_VERSION}"; \
+    "$py" -m pip download --no-cache-dir --no-deps --dest /tmp/pip-wheel "pip==${PIP_VERSION}"; \
+    bundled="$("$py" -c 'import ensurepip, os; print(os.path.join(os.path.dirname(ensurepip.__file__), "_bundled"))')"; \
     rm -f "$bundled"/pip-*.whl; \
     cp /tmp/pip-wheel/pip-*.whl "$bundled"/; \
     rm -rf /tmp/pip-wheel; \
-    python -m pip --version; \
-    ls "$bundled"
+    "$py" -m pip --version; \
+    ls "$bundled"; \
+    ls -d "$site"/pip-*.dist-info
 
 COPY cli_wrapper.sh /usr/bin/pasarguard-cli
 RUN chmod +x /usr/bin/pasarguard-cli
