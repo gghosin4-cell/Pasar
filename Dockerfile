@@ -24,6 +24,8 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 FROM python:$PYTHON_VERSION-slim-$DEBIAN_RELEASE
 
+EXPOSE 8443
+
 COPY --from=builder /build /code
 WORKDIR /code
 
