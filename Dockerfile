@@ -31,12 +31,15 @@ RUN apk upgrade --no-cache \
 
 COPY --from=uv /uv /uvx /bin/
 
-WORKDIR /build
+# The virtualenv is created at its final runtime path so that interpreter and
+# console-script shebangs stay valid once the layer is copied into the runtime
+# stage.
+WORKDIR /code
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     uv sync --frozen --no-install-project --no-dev
-ADD . /build
+ADD . /code
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev
 
