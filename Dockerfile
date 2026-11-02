@@ -1,6 +1,7 @@
 ARG PYTHON_VERSION=3.14
+ARG DEBIAN_RELEASE=trixie
 
-FROM ghcr.io/astral-sh/uv:python$PYTHON_VERSION-bookworm-slim AS builder
+FROM ghcr.io/astral-sh/uv:python$PYTHON_VERSION-$DEBIAN_RELEASE-slim AS builder
 ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -21,18 +22,21 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev
 
 
-FROM python:$PYTHON_VERSION-slim-bookworm
+FROM python:$PYTHON_VERSION-slim-$DEBIAN_RELEASE
 
 COPY --from=builder /build /code
 WORKDIR /code
 
 ENV PATH="/code/.venv/bin:$PATH"
 
-# Keep the runtime trust store explicit. Outbound notification clients use it
-# without replacing Python's process-wide SSLContext.
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Apply the distribution's latest security updates and keep the runtime trust
+# store explicit. Outbound notification clients use the trust store without
+# replacing Python's process-wide SSLContext. The runtime does not install curl:
+# the loopback health check uses the Python standard library instead.
+RUN apt-get update \
+    && apt-get upgrade -y \
+    && apt-get install -y --no-install-recommends \
     ca-certificates \
-    curl \
     && update-ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
