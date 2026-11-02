@@ -48,7 +48,7 @@ FROM python:${PYTHON_VERSION}-alpine${ALPINE_VERSION}
 
 EXPOSE 8443
 
-COPY --from=builder /build /code
+COPY --from=builder /code /code
 WORKDIR /code
 
 ENV PATH="/code/.venv/bin:$PATH"
